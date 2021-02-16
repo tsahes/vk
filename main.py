@@ -9,16 +9,18 @@ async def handle_list(request):
     params = request.rel_url.query
     limit = int(request.rel_url.query['limit']) if 'limit' in params else 100
     offset = int(request.rel_url.query['offset']) if 'offset' in params else 0
+    theme = request.rel_url.query['theme'] if 'theme' in params else None
 
     print('\n'.join([
         'limit = ' + str(limit),
         'offset = ' + str(offset),
     ]))
 
-#    response = Questions.find().limit(limit).offset(offset)
+    data = getQuestions(questions_table, limit, offset, theme)
 
-#    return web.Response(text=str(questions))
-    return web.Response(text='success : True')
+    return web.Response(text=str({'data' : {'total' : len(data),
+                                            'questions' : data},
+                                  'status' : 'ok'}))
 
 async def handle(request):
     return web.Response(text="success")
@@ -26,7 +28,7 @@ async def handle(request):
 async def handle_post(request):
     global questions
     question = await request.json()
-    pprint(question)
+#    pprint(question)
     correct_question = quest_verification(question)
     if correct_question:
         insert_document(db.questions,correct_question)
@@ -94,21 +96,7 @@ def getOrder(collection, question):
     else:
         return 1
 
-rel_question_1 = {
-    'theme' : 'Религиозная',
-    "order": 1,
-  "text": 'ЭТО сленговое американское выражение, говорящее о потере терпения, принесло две премии "Грэмми" группе "R.E.M."',
-  "points": 10,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text":  "LOSING MY RELIGION",
-    "is_correct": True
-  }
-}
-print(rel_question_1['order'])
 
-#pprint(getQuestions(db.questions))
 
 #DATA (while there's no db)
 questions = {
@@ -149,11 +137,12 @@ class questionSchema(Schema):
     theme = fields.Str(required=True, error_messages={'required' : 'Theme is required'})
     text = fields.Str(required=True, error_messages={'required' : 'Text of the question is required'})
     answers = fields.Nested(answerSchema())
+    order = fields.Integer(default=0)
 
 
 def quest_verification(question):
     schema = questionSchema()
-#    question.setdefault('order', getOrder(questions_table, question))
+    question.setdefault('order', getOrder(questions_table, question))
 
     try:
         result = schema.load(question)
@@ -162,7 +151,7 @@ def quest_verification(question):
         return correct_question
     except ValidationError as err:
         pprint(err.messages)
-
+#print(quest_verification(rel_question_1))
 
 if __name__ == '__main__':
     web.run_app(app)
