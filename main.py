@@ -1,6 +1,6 @@
 from aiohttp import web
-from pymongo import MongoClient, ASCENDING
-# pprint library is used to make the output look more pretty
+from pymongo import MongoClient, ASCENDING, DESCENDING
+from marshmallow import Schema, fields, ValidationError, INCLUDE
 from pprint import pprint
 from creds import MONGODB_URL
 
@@ -25,10 +25,16 @@ async def handle(request):
 
 async def handle_post(request):
     global questions
-    text = await request.json()
-    print(text['offset'])
+    question = await request.json()
+    pprint(question)
+    correct_question = quest_verification(question)
+    if correct_question:
+        insert_document(db.questions,correct_question)
+        return web.Response(text=str({'data' : correct_question, 'status' : 'ok'}))
+    else:
+        return web.Response(text='success : False')
 
-    return web.Response(text='success : True')
+
 
 #APP
 app = web.Application()
@@ -38,12 +44,14 @@ app.add_routes([web.get('/api/questions/list', handle_list),
                 web.get('/', handle),
                 web.post('/api/questions/create', handle_post)])
 
-# connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
+
+#CONNECTION TO A DATABASE
 client = MongoClient(MONGODB_URL)
 db=client.vk_game
 # Issue the serverStatus command and print the results
 serverStatusResult=db.command("serverStatus")
 #pprint(serverStatusResult)
+questions_table = db.questions
 
 def insert_document(collection, data):
     """ Function to insert a document into a collection and
@@ -63,25 +71,31 @@ def find_document(collection, elements={}, multiple=False):
         return collection.find_one(elements)
 
 
-#print(find_document(db.questions))
-#insert_document(db.questions, {'status' : 'not_ok'})
 
-empty_question = {
-  "order": 0,
-  "text": "string",
-  "points": 0,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text": "string",
-    "is_correct": True
-  }
-}
-#insert_document(db.questions, empty_question)
-#db.questions.delete_many({'status' : 'not_ok'})
 
-#ADDING A PACKAGE OF QUESTIONS
+def getQuestions(collection, limit=100, offset=0, theme=None):
+    limit = limit+offset
+    if theme:
+        results = collection.find({"$and": [{"text": {'$exists': True}},
+                                           {"theme": theme}]}
+                                  ).sort('order', DESCENDING
+                                         ).limit(limit)
+    else:
+        results = collection.find({"text": {'$exists': True}}
+                                  ).sort([('theme', DESCENDING), ('order', DESCENDING)]
+                                         ).limit(limit)
+    res_list = [r for r in results]
+    return res_list[offset:]
+
+def getOrder(collection, question):
+    last_question = getQuestions(collection, limit=1, theme=question['theme'])
+    if len(last_question) > 0:
+        return last_question[0]['order'] + 1
+    else:
+        return 1
+
 rel_question_1 = {
+    'theme' : 'Религиозная',
     "order": 1,
   "text": 'ЭТО сленговое американское выражение, говорящее о потере терпения, принесло две премии "Грэмми" группе "R.E.M."',
   "points": 10,
@@ -92,70 +106,9 @@ rel_question_1 = {
     "is_correct": True
   }
 }
+print(rel_question_1['order'])
 
-rel_question_2 = {
-    "order": 2,
-  "text": 'Именно ТАК звучат по-японски слова "путь богов".',
-  "points": 20,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text":  "СИНТО",
-    "is_correct": True
-  }
-}
-
-rel_question_3 = {
-    "order": 3,
-  "text": 'Вождь Терииероо, живший на ЭТОМ острове, чрезвычайно обрадовался, когда узнал от Тура Хейердала, что в Скандинавии почти все исповедуют протестантскую веру.',
-  "points": 30,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text":  "ТАИТИ",
-    "is_correct": True
-  }
-}
-
-rel_question_4 = {
-    "order": 4,
-  "text": 'Три религии: иудаизм, христианство и ислам — нередко объединяют ЭТИМ прилагательным.',
-  "points": 40,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text":  "АВРААМИЧЕСКИЕ",
-    "is_correct": True
-  }
-}
-
-rel_question_5 = {
-    "order": 5,
-  "text": 'В России исповедующие ЭТУ религию традиционно называют ее "благоверие".',
-  "points": 50,
-  "answers": {
-    "order": 0,
-    "id": 0,
-    "text":  "ЗОРОАСТРИЗМ",
-    "is_correct": True
-  }
-}
-
-rel_package = [rel_question_1, rel_question_2,
-               rel_question_3, rel_question_4,
-               rel_question_5]
-
-#for quest in rel_package:
-#    insert_document(db.questions, quest)
-
-#pprint(find_document(db.questions, multiple=True))
-
-def getQuestions(collection, limit=100, offset=0):
-    results = collection.find({"text": {'$exists': True}}).sort('order', ASCENDING)
-    res_list = [r for r in results]
-    return res_list[offset:(offset+limit if offset+limit<len(res_list) else len(res_list))]
-
-pprint(getQuestions(db.questions))
+#pprint(getQuestions(db.questions))
 
 #DATA (while there's no db)
 questions = {
@@ -178,6 +131,38 @@ questions = {
   },
   "status": "ok"
 }
+
+#DATA VERIFICATION
+class answerSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
+    text = fields.Str(required=True, error_messages={'required' : 'Answer to the question is required'})
+    id = fields.Integer(default=0)
+    is_correct = fields.Boolean(default=True)
+    order = fields.Integer(default=0)
+
+
+class questionSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
+    points = fields.Integer()
+    theme = fields.Str(required=True, error_messages={'required' : 'Theme is required'})
+    text = fields.Str(required=True, error_messages={'required' : 'Text of the question is required'})
+    answers = fields.Nested(answerSchema())
+
+
+def quest_verification(question):
+    schema = questionSchema()
+#    question.setdefault('order', getOrder(questions_table, question))
+
+    try:
+        result = schema.load(question)
+        pprint(result)
+        correct_question = schema.dump(result)
+        return correct_question
+    except ValidationError as err:
+        pprint(err.messages)
+
 
 if __name__ == '__main__':
     web.run_app(app)
