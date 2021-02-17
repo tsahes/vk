@@ -4,7 +4,7 @@ from marshmallow import Schema, fields, ValidationError, INCLUDE
 from pprint import pprint
 from creds import MONGODB_URL
 
-#VIEW
+# VIEW
 async def handle_list(request):
     params = request.rel_url.query
     limit = int(request.rel_url.query['limit']) if 'limit' in params else 100
@@ -18,24 +18,52 @@ async def handle_list(request):
 
     data = getQuestions(questions_table, limit, offset, theme)
 
-    return web.Response(text=str({'data' : {'total' : len(data),
-                                            'questions' : data},
-                                  'status' : 'ok'}))
+    return json_response(data={'total' : len(data), 'questions' : data})
+
 
 async def handle(request):
-    return web.Response(text="success")
+    return json_response()
+
 
 async def handle_post(request):
-    global questions
     question = await request.json()
 #    pprint(question)
     correct_question = quest_verification(question)
-    if correct_question:
-        insert_document(db.questions,correct_question)
-        return web.Response(text=str({'data' : correct_question, 'status' : 'ok'}))
-    else:
-        return web.Response(text='success : False')
 
+    if correct_question['success']:
+        correct_question = correct_question['data']
+        correct_question.setdefault('order', getQuestionOrder(questions_table, correct_question))
+        correct_question['_id'] = correct_question['theme']+str(correct_question['order'])
+
+        insert_document(db.questions, correct_question)
+        return json_response(data=correct_question)
+ #       return web.Response(text=str({'data' : correct_question, 'status' : 'ok'}))
+    else:
+        return error_json_response(text_status='not ok', data=correct_question['data'])
+
+
+async def handle_delete(request):
+    question = await request.json()
+    db.questions.delete_one({'_id' : question['id']})
+    return json_response()
+
+
+#JSON RESPONSES
+def json_response(
+        status: int = 200, text_status: str = "ok", data: dict = None
+) -> web.Response:
+    return web.json_response(status=status, data={"data": data, "status": text_status})
+
+
+def error_json_response(
+    status: int = 400,
+    text_status: str = "ok",
+    message: str = "Bad request",
+    data: dict = None,
+) -> web.Response:
+    return web.json_response(
+        status=status, data={"data": data, "status": text_status, "message": message}
+    )
 
 
 #APP
@@ -44,7 +72,8 @@ app = web.Application()
 #ROUTES
 app.add_routes([web.get('/api/questions/list', handle_list),
                 web.get('/', handle),
-                web.post('/api/questions/create', handle_post)])
+                web.post('/api/questions/create', handle_post),
+                web.post('/api/questions/delete', handle_delete)])
 
 
 #CONNECTION TO A DATABASE
@@ -73,23 +102,22 @@ def find_document(collection, elements={}, multiple=False):
         return collection.find_one(elements)
 
 
-
-
 def getQuestions(collection, limit=100, offset=0, theme=None):
-    limit = limit+offset
+    #limit = limit+offset
     if theme:
         results = collection.find({"$and": [{"text": {'$exists': True}},
                                            {"theme": theme}]}
                                   ).sort('order', DESCENDING
-                                         ).limit(limit)
+                                         ).limit(limit).skip(offset)
     else:
         results = collection.find({"text": {'$exists': True}}
                                   ).sort([('theme', DESCENDING), ('order', DESCENDING)]
-                                         ).limit(limit)
+                                         ).limit(limit).skip(offset)
     res_list = [r for r in results]
     return res_list[offset:]
 
-def getOrder(collection, question):
+
+def getQuestionOrder(collection, question):
     last_question = getQuestions(collection, limit=1, theme=question['theme'])
     if len(last_question) > 0:
         return last_question[0]['order'] + 1
@@ -137,20 +165,21 @@ class questionSchema(Schema):
     theme = fields.Str(required=True, error_messages={'required' : 'Theme is required'})
     text = fields.Str(required=True, error_messages={'required' : 'Text of the question is required'})
     answers = fields.Nested(answerSchema())
-    order = fields.Integer(default=0)
+#    order = fields.Integer(default=0)
 
 
 def quest_verification(question):
     schema = questionSchema()
-    question.setdefault('order', getOrder(questions_table, question))
 
     try:
         result = schema.load(question)
-        pprint(result)
-        correct_question = schema.dump(result)
-        return correct_question
+#        pprint(result)
+#        correct_question = schema.dump(result)
+        return dict(success=True, data=result)
     except ValidationError as err:
-        pprint(err.messages)
+        return dict(success=False, data=err.messages)
+
+
 #print(quest_verification(rel_question_1))
 
 if __name__ == '__main__':
