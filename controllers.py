@@ -39,3 +39,4 @@ async def questions_delete(request):
     question = await request.json()
     questions_table.delete_one({'id' : question['id']})
     return json_response()
+

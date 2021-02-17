@@ -8,3 +8,4 @@ db=client.vk_game
 serverStatusResult=db.command("serverStatus")
 #pprint(serverStatusResult)
 questions_table = db.questions
+games_table = db.games
