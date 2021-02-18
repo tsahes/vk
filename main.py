@@ -1,12 +1,12 @@
 from aiohttp import web
-from routs import setup_routs
+from routes import setup_routes
 
 
 #APP
 app = web.Application()
 
 def setup_app(application: web.Application) -> None:
-    setup_routs(application)
+    setup_routes(application)
 
 
 if __name__ == '__main__':

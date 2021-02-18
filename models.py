@@ -29,8 +29,10 @@ class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
     gamers = fields.Nested(gamerSchema())
-    question_id = fields.Integer()
-    time_started = fields.DateTime()
+    current_question = fields.Str()
+    current_theme = fields.Str()
+    time_finish = fields.DateTime()
+    game_finished = fields.Boolean(default=False)
 
 def quest_verification(question):
     schema = questionSchema()
