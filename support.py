@@ -47,9 +47,18 @@ def get_question_order(collection, question):
     else:
         return 1
 
+
 def get_game_order(collection, game):
     group_games = collection.count_documents({'group_id' : game['group_id']})
     return group_games + 1
+
+
+def get_played_themes(collection, id):
+    result = collection.find({'$and': {'group_id': id,
+                                        'game_finished': True}},
+                             {'theme': {'$exists': True}})
+    return [r for r in result]
+
 
 # Not needed yet
 def find_game(collection, id):

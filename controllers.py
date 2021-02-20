@@ -1,7 +1,7 @@
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
 from models import quest_verification, gameSchema
-from support import insert_document, get_questions, get_question_order, get_game_order, get_themes
+from support import insert_document, get_questions, get_question_order, get_game_order, get_themes, get_played_themes
 
 
 async def questions_list(request):
@@ -63,18 +63,20 @@ async def themes_list(request):
     return json_response(data={'total': len(data), 'themes': data})
 
 
-async def game_with_theme(request):
+async def set_theme(request):
     message = await request.json()
     theme = message['object']['body']
-    # TODO: add already played themes somewhere?
-    if theme in get_themes(questions_table):
+    group_id = message['group_id']
+    if (theme in get_themes(questions_table)) and \
+            (theme not in get_played_themes(games_table, group_id)):
+        yield 'ok'
         question_id = theme + str(1)
-        games_table.find_one_and_update({'$and': [{'group_id': message['group_id']},
+        games_table.find_one_and_update({'$and': [{'group_id': group_id},
                                                   {'game_finished': False}]},
                                         {'current_theme': theme,
                                          'current_question': question_id,
                                          # TODO: check out the timestamps
                                          'time_finish': None})
-        return json_response(data=questions_table.find_one({'id': question_id}))
+        yield json_response(data=questions_table.find_one({'id': question_id}))
     else:
-        return error_json_response(data={'error': 'Theme not found'})
+        yield error_json_response(data={'error': 'Theme not found'})
