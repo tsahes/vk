@@ -1,7 +1,8 @@
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
-from models import quest_verification, gameSchema
+from models import data_verification, gameSchema
 from support import insert_document, get_questions, get_question_order, get_game_order, get_themes, get_played_themes
+from module import form_correct_question, get_question
 
 
 async def questions_list(request):
@@ -12,7 +13,7 @@ async def questions_list(request):
 
     data = get_questions(questions_table, limit, offset, theme)
 
-    return json_response(data={'total' : len(data), 'questions' : data})
+    return json_response(data={'total': len(data), 'questions': data})
 
 
 async def empty(request):
@@ -22,14 +23,11 @@ async def empty(request):
 async def questions_create(request):
     question = await request.json()
 #    pprint(question)
-    correct_question = quest_verification(question)
+    correct_question = data_verification(question, question=True)
 
     if correct_question['success']:
         correct_question = correct_question['data']
-        correct_question.setdefault('order', get_question_order(questions_table, correct_question))
-        correct_question['id'] = correct_question['theme']+str(correct_question['order'])
-
-        insert_document(questions_table, correct_question.copy())
+        correct_question = form_correct_question(correct_question)
         return json_response(data=correct_question)
     else:
         return error_json_response(text_status='not ok', data=correct_question['data'])
@@ -46,9 +44,9 @@ async def game_start(request):
     new_game = dict(group_id=game_data['group_id'],
                     game_finished=False,
                     game_id=str(game_data['group_id'])+str(get_game_order(games_table, game_data)))
-    schema = gameSchema()
-    game = schema.load(new_game)
-    insert_document(games_table, game.copy())
+    correct_game = data_verification(new_game, game=True)
+
+    insert_document(games_table, correct_game.copy())
     themes = get_themes(questions_table)
     return json_response(data=themes)
 
@@ -67,16 +65,9 @@ async def set_theme(request):
     message = await request.json()
     theme = message['object']['body']
     group_id = message['group_id']
-    if (theme in get_themes(questions_table)) and \
-            (theme not in get_played_themes(games_table, group_id)):
-        yield 'ok'
-        question_id = theme + str(1)
-        games_table.find_one_and_update({'$and': [{'group_id': group_id},
-                                                  {'game_finished': False}]},
-                                        {'current_theme': theme,
-                                         'current_question': question_id,
-                                         # TODO: check out the timestamps
-                                         'time_finish': None})
-        yield json_response(data=questions_table.find_one({'id': question_id}))
+    question_id = set_theme(group_id, theme)
+    if 'id' in question_id:
+        question = get_question(question_id['id'])
+        return json_response(data=question['data'])
     else:
-        yield error_json_response(data={'error': 'Theme not found'})
+        return error_json_response(data={'error': 'Theme not found'})

@@ -25,6 +25,7 @@ class gamerSchema(Schema):
     user_id = fields.Integer()
     user_score = fields.Integer()
 
+
 class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
@@ -34,15 +35,20 @@ class gameSchema(Schema):
     time_finish = fields.DateTime()
     game_finished = fields.Boolean(default=False)
 
-def quest_verification(question):
-    schema = questionSchema()
+
+def data_verification(data, game=False, question=False):
+    if game:
+        schema = gameSchema()
+    elif question:
+        schema = questionSchema()
 
     try:
-        result = schema.load(question)
+        result = schema.load(data)
 #        pprint(result)
 #        correct_question = schema.dump(result)
         return dict(success=True, data=result)
     except ValidationError as err:
         return dict(success=False, data=err.messages)
+
 
 
