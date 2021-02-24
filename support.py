@@ -65,3 +65,6 @@ def find_game(collection, id):
     result = collection.find({'$and': [{'group_id': id},
                                        {'game_finished': False}]})
     return [r for r in result]
+
+def gen_question_id(theme, ind=1):
+    return theme + str(ind)

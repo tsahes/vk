@@ -1,5 +1,6 @@
 from connection_to_database import questions_table, games_table
-from support import get_question_order, insert_document, get_themes, get_played_themes
+from support import get_question_order, insert_document, get_themes, get_played_themes, gen_question_id
+import time
 
 
 def form_correct_question(question_data):
@@ -11,10 +12,10 @@ def form_correct_question(question_data):
 
 #def start_game(game_data):
 
-def set_theme(group_id, theme):
+def check_and_set_theme(group_id, theme):
     if (theme in get_themes(questions_table)) and \
             (theme not in get_played_themes(games_table, group_id)):
-        question_id = theme + str(1)
+        question_id = gen_question_id(theme)
         games_table.find_one_and_update({'$and': [{'group_id': group_id},
                                                   {'game_finished': False}]},
                                         {'current_theme': theme,
@@ -23,7 +24,8 @@ def set_theme(group_id, theme):
                                          'time_finish': None})
         return {'id': question_id}
     else:
-        return {'error': 'Theme not found'}
+        raise KeyError('Theme not found')
+#        return {'error': 'Theme not found'}
 
 
 def get_question(id):
@@ -31,8 +33,30 @@ def get_question(id):
     return {'data': question}
 
 
-#def check_answer(answer):
+def find_current_question(group_id):
+    question_id = games_table.find_one({'$and': [{'group_id': group_id},
+                                                 {'game_finished': False},
+                                                 {'time_finish': {'$gte': time.time()}}]},
+                                       {'current_question': {'$exists': True}})
+    return question_id
 
+
+def answer_is_correct(answer: str, question_id):
+    question = questions_table.find({'id': question_id})
+    return answer.upper() == question['answer']['text']
+
+
+def change_player_points(group, player, points):
+    game = games_table.find({'$and': [{'group_id': group_id},
+                                      {'game_finished': False}]})
+    if player in game['players']:
+        game['players'] += points
+    else:
+        game['players'] = points
+
+    games_table.find_one_and_update({'$and': [{'group_id': group_id},
+                                              {'game_finished': False}]},
+                                    {'players': game['players']})
 
 
 class Question:

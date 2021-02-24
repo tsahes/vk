@@ -29,17 +29,17 @@ class gamerSchema(Schema):
 class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
-    gamers = fields.Nested(gamerSchema())
+    players = fields.Nested(gamerSchema())
     current_question = fields.Str()
     current_theme = fields.Str()
     time_finish = fields.DateTime()
     game_finished = fields.Boolean(default=False)
 
 
-def data_verification(data, game=False, question=False):
-    if game:
+def data_verification(data, type):
+    if type == 'game':
         schema = gameSchema()
-    elif question:
+    elif type == 'question':
         schema = questionSchema()
 
     try:

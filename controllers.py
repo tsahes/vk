@@ -1,8 +1,8 @@
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
-from models import data_verification, gameSchema
+from models import data_verification
 from support import insert_document, get_questions, get_question_order, get_game_order, get_themes, get_played_themes
-from module import form_correct_question, get_question
+from module import form_correct_question, get_question, check_and_set_theme, find_current_question, answer_is_correct, change_player_points
 
 
 async def questions_list(request):
@@ -23,7 +23,7 @@ async def empty(request):
 async def questions_create(request):
     question = await request.json()
 #    pprint(question)
-    correct_question = data_verification(question, question=True)
+    correct_question = data_verification(question, type='question')
 
     if correct_question['success']:
         correct_question = correct_question['data']
@@ -42,9 +42,11 @@ async def questions_delete(request):
 async def game_start(request):
     game_data = await request.json()
     new_game = dict(group_id=game_data['group_id'],
+                    game_id=str(game_data['group_id'])+str(get_game_order(games_table, game_data)),
+                    players=[],
                     game_finished=False,
-                    game_id=str(game_data['group_id'])+str(get_game_order(games_table, game_data)))
-    correct_game = data_verification(new_game, game=True)
+                    )
+    correct_game = data_verification(new_game, type='game')
 
     insert_document(games_table, correct_game.copy())
     themes = get_themes(questions_table)
@@ -65,9 +67,26 @@ async def set_theme(request):
     message = await request.json()
     theme = message['object']['body']
     group_id = message['group_id']
-    question_id = set_theme(group_id, theme)
-    if 'id' in question_id:
+    try:
+        question_id = check_and_set_theme(group_id, theme)
         question = get_question(question_id['id'])
         return json_response(data=question['data'])
+    except KeyError as err:
+        return error_json_response(data={'error': err.args})
+
+
+async def check_answer(request):
+    message = await request.json()
+    answer = message['object']['body']
+    group_id = message['group_id']
+    user_id = message['object']['user_id']
+    current_question = find_current_question(group_id)
+
+    if current_question is None:
+        return json_response(data={'error': 'The answer is too late'})
     else:
-        return error_json_response(data={'error': 'Theme not found'})
+        if answer_is_correct(answer, current_question):
+            change_player_points(group_id, user_id, current_question['points'])
+
+        else:
+            change_player_points(group_id, user_id, -current_question['points'])
