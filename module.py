@@ -21,7 +21,7 @@ def check_and_set_theme(group_id, theme):
                                         {'current_theme': theme,
                                          'current_question': question_id,
                                          # TODO: check out the timestamps
-                                         'time_finish': None})
+                                         'time_finish': time.time()*1000 + 2*60*1000})
         return {'id': question_id}
     else:
         raise KeyError('Theme not found')
@@ -34,11 +34,11 @@ def get_question(id):
 
 
 def find_current_question(group_id):
-    question_id = games_table.find_one({'$and': [{'group_id': group_id},
+    question = games_table.find_one({'$and': [{'group_id': group_id},
                                                  {'game_finished': False},
                                                  {'time_finish': {'$gte': time.time()}}]},
                                        {'current_question': {'$exists': True}})
-    return question_id
+    return question
 
 
 def answer_is_correct(answer: str, question_id):
@@ -46,7 +46,7 @@ def answer_is_correct(answer: str, question_id):
     return answer.upper() == question['answer']['text']
 
 
-def change_player_points(group, player, points):
+def change_player_points(group_id, player, points):
     game = games_table.find({'$and': [{'group_id': group_id},
                                       {'game_finished': False}]})
     if player in game['players']:
@@ -57,6 +57,19 @@ def change_player_points(group, player, points):
     games_table.find_one_and_update({'$and': [{'group_id': group_id},
                                               {'game_finished': False}]},
                                     {'players': game['players']})
+
+
+def set_next_question(group_id, current_question,):
+    if current_question['order'] < 5:
+        question_id = gen_question_id(current_question['theme'], current_question['order']+1)
+        games_table.find_one_and_update({'$and': [{'group_id': group_id},
+                                                  {'game_finished': False}]},
+                                        {'current_question': question_id})
+    else:
+        games_table.find_one_and_update({'$and': [{'group_id': group_id},
+                                                  {'game_finished': False}]},
+                                        {'game_finished': True,
+                                         'current_theme': None})
 
 
 class Question:

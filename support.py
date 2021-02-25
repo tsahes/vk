@@ -1,28 +1,28 @@
 from pymongo import MongoClient, ASCENDING, DESCENDING
 
 
-def insert_document(collection, data):
+async def insert_document(collection, data):
     """ Function to insert a document into a collection and
     return the document's id.
     """
-    return collection.insert_one(data).inserted_id
+    return await collection.insert_one(data).inserted_id
 
 
-def find_document(collection, elements={}, multiple=False):
+async def find_document(collection, elements={}, multiple=False):
     """ Function to retrieve single or multiple documents from a provided
     Collection using a dictionary containing a document's elements.
     """
     if multiple:
         results = collection.find(elements)
-        return [r for r in results]
+        return [r async for r in results]
     else:
-        return collection.find_one(elements)
+        return await collection.find_one(elements)
 
 
-def get_questions(collection, limit=100, offset=0, theme=None):
+async def get_questions(collection, limit=100, offset=0, theme=None):
     if theme:
         results = collection.find({"$and": [{"text": {'$exists': True}},
-                                           {"theme": theme}]},
+                                            {"theme": theme}]},
                                   {"_id" : False}
                                   ).sort('order', DESCENDING
                                          ).limit(limit).skip(offset)
@@ -30,11 +30,11 @@ def get_questions(collection, limit=100, offset=0, theme=None):
         results = collection.find({"text": {'$exists': True}}
                                   ).sort([('theme', DESCENDING), ('order', DESCENDING)]
                                          ).limit(limit).skip(offset)
-    res_list = [r for r in results]
+    res_list = [r async for r in results]
     return res_list
 
 
-def get_themes(collection, limit=100, offset=0):
+async def get_themes(collection, limit=100, offset=0):
     result = collection.distinct('theme')
     last = offset+limit if offset+limit < len(result) else -1
     return result[offset:last]

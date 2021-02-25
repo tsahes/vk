@@ -11,7 +11,7 @@ async def questions_list(request):
     offset = int(request.rel_url.query['offset']) if 'offset' in params else 0
     theme = request.rel_url.query['theme'] if 'theme' in params else None
 
-    data = get_questions(questions_table, limit, offset, theme)
+    data = await get_questions(questions_table, limit, offset, theme)
 
     return json_response(data={'total': len(data), 'questions': data})
 
