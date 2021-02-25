@@ -1,4 +1,4 @@
-from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo import DESCENDING
 
 
 async def insert_document(collection, data):
@@ -35,36 +35,36 @@ async def get_questions(collection, limit=100, offset=0, theme=None):
 
 
 async def get_themes(collection, limit=100, offset=0):
-    result = collection.distinct('theme')
+    result = await collection.distinct('theme')
     last = offset+limit if offset+limit < len(result) else -1
     return result[offset:last]
 
 
-def get_question_order(collection, question):
-    last_question = get_questions(collection, limit=1, theme=question['theme'])
+async def get_question_order(collection, question):
+    last_question = await get_questions(collection, limit=1, theme=question['theme'])
     if len(last_question) > 0:
         return last_question[0]['order'] + 1
     else:
         return 1
 
 
-def get_game_order(collection, game):
-    group_games = collection.count_documents({'group_id' : game['group_id']})
+async def get_game_order(collection, game):
+    group_games = await collection.count_documents({'group_id' : game['group_id']})
     return group_games + 1
 
 
-def get_played_themes(collection, id):
+async def get_played_themes(collection, id):
     result = collection.find({'$and': {'group_id': id,
                                         'game_finished': True}},
                              {'theme': {'$exists': True}})
-    return [r for r in result]
+    return [r async for r in result]
 
 
 # Not needed yet
-def find_game(collection, id):
+async def find_game(collection, id):
     result = collection.find({'$and': [{'group_id': id},
                                        {'game_finished': False}]})
-    return [r for r in result]
+    return [r async for r in result]
 
 def gen_question_id(theme, ind=1):
     return theme + str(ind)

@@ -1,8 +1,11 @@
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
 from models import data_verification
-from support import insert_document, get_questions, get_question_order, get_game_order, get_themes, get_played_themes
-from module import form_correct_question, get_question, check_and_set_theme, find_current_question, answer_is_correct, change_player_points
+from support import insert_document, get_questions, get_game_order, get_themes
+from module import (form_correct_question, get_question,
+                    check_and_set_theme, find_current_question,
+                    answer_is_correct, change_player_points,
+                    set_next_question)
 
 
 async def questions_list(request):
@@ -27,7 +30,7 @@ async def questions_create(request):
 
     if correct_question['success']:
         correct_question = correct_question['data']
-        correct_question = form_correct_question(correct_question)
+        correct_question = await form_correct_question(correct_question)
         return json_response(data=correct_question)
     else:
         return error_json_response(text_status='not ok', data=correct_question['data'])
@@ -35,7 +38,7 @@ async def questions_create(request):
 
 async def questions_delete(request):
     question = await request.json()
-    questions_table.delete_one({'id' : question['id']})
+    await questions_table.delete_one({'id' : question['id']})
     return json_response()
 
 
@@ -48,8 +51,8 @@ async def game_start(request):
                     )
     correct_game = data_verification(new_game, type='game')
 
-    insert_document(games_table, correct_game.copy())
-    themes = get_themes(questions_table)
+    await insert_document(games_table, correct_game.copy())
+    themes = await get_themes(questions_table)
     return json_response(data=themes)
 
 
@@ -58,7 +61,7 @@ async def themes_list(request):
     limit = int(request.rel_url.query['limit']) if 'limit' in params else 100
     offset = int(request.rel_url.query['offset']) if 'offset' in params else 0
 
-    data = get_themes(questions_table, limit, offset)
+    data = await get_themes(questions_table, limit, offset)
 
     return json_response(data={'total': len(data), 'themes': data})
 
@@ -68,9 +71,9 @@ async def set_theme(request):
     theme = message['object']['body']
     group_id = message['group_id']
     try:
-        question_id = check_and_set_theme(group_id, theme)
-        question = get_question(question_id['id'])
-        return json_response(data=question['data'])
+        question_id = await check_and_set_theme(group_id, theme)
+        question = await get_question(question_id['id'])
+        return json_response(data=question)
     except KeyError as err:
         return error_json_response(data={'error': err.args})
 
@@ -80,13 +83,27 @@ async def check_answer(request):
     answer = message['object']['body']
     group_id = message['group_id']
     user_id = message['object']['user_id']
-    current_question = find_current_question(group_id)
+    current_question = await find_current_question(group_id)
 
     if current_question is None:
         return json_response(data={'error': 'The answer is too late'})
     else:
+        points = current_question['points']
         if answer_is_correct(answer, current_question):
-            change_player_points(group_id, user_id, current_question['points'])
-
+            await change_player_points(group_id, user_id, points)
+            await set_next_question(group_id, current_question)
+            return json_response(data={'message': 'Верно. Участник '+user_id+' получает '+points+' очков.'})
         else:
-            change_player_points(group_id, user_id, -current_question['points'])
+            await change_player_points(group_id, user_id, -points)
+            return json_response(data={'message': 'Неверно. Участник '+user_id+' теряет '+points+' очков.'})
+
+
+async def get_current_question(request):
+    message = await request.json()
+    group_id = message['group_id']
+    current_question = await find_current_question(group_id)
+    if current_question is None:
+
+        return json_response(data={'error': 'Please set new theme'})
+    else:
+        return json_response(data=current_question)
