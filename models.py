@@ -29,7 +29,8 @@ class gamerSchema(Schema):
 class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
-    players = fields.Nested(gamerSchema())
+#    players = fields.List(fields.Nested(gamerSchema()))
+    players = fields.Dict()
     current_question = fields.Str()
     current_theme = fields.Str()
     time_finish = fields.DateTime()

@@ -5,7 +5,8 @@ async def insert_document(collection, data):
     """ Function to insert a document into a collection and
     return the document's id.
     """
-    return await collection.insert_one(data).inserted_id
+    result = await collection.insert_one(data)
+    return result.inserted_id
 
 
 async def find_document(collection, elements={}, multiple=False):
@@ -36,12 +37,13 @@ async def get_questions(collection, limit=100, offset=0, theme=None):
 
 async def get_themes(collection, limit=100, offset=0):
     result = await collection.distinct('theme')
-    last = offset+limit if offset+limit < len(result) else -1
+    last = offset+limit if offset+limit < len(result) else len(result)
     return result[offset:last]
 
 
 async def get_question_order(collection, question):
     last_question = await get_questions(collection, limit=1, theme=question['theme'])
+    last_question = list(last_question)
     if len(last_question) > 0:
         return last_question[0]['order'] + 1
     else:
@@ -54,9 +56,9 @@ async def get_game_order(collection, game):
 
 
 async def get_played_themes(collection, id):
-    result = collection.find({'$and': {'group_id': id,
-                                        'game_finished': True}},
-                             {'theme': {'$exists': True}})
+    result = collection.find({'group_id': id,
+                              'game_finished': True},
+                             {'theme': True})
     return [r async for r in result]
 
 
@@ -68,3 +70,7 @@ async def find_game(collection, id):
 
 def gen_question_id(theme, ind=1):
     return theme + str(ind)
+
+def gen_game_id(group_id, ind):
+    game_id = str(group_id)+'-'+str(ind)
+    return game_id

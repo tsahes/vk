@@ -1,11 +1,12 @@
+import time
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
 from models import data_verification
-from support import insert_document, get_questions, get_game_order, get_themes
+from support import insert_document, get_questions, get_game_order, get_themes, gen_game_id
 from module import (form_correct_question, get_question,
                     check_and_set_theme, find_current_question,
                     answer_is_correct, change_player_points,
-                    set_next_question)
+                    set_next_question, func_get_current_question)
 
 
 async def questions_list(request):
@@ -44,14 +45,15 @@ async def questions_delete(request):
 
 async def game_start(request):
     game_data = await request.json()
+    game_id = gen_game_id(game_data['group_id'], await get_game_order(games_table, game_data))
     new_game = dict(group_id=game_data['group_id'],
-                    game_id=str(game_data['group_id'])+str(get_game_order(games_table, game_data)),
-                    players=[],
+                    game_id=game_id,
+                    players={},
                     game_finished=False,
                     )
     correct_game = data_verification(new_game, type='game')
 
-    await insert_document(games_table, correct_game.copy())
+    await insert_document(games_table, correct_game['data'].copy())
     themes = await get_themes(questions_table)
     return json_response(data=themes)
 
@@ -83,27 +85,29 @@ async def check_answer(request):
     answer = message['object']['body']
     group_id = message['group_id']
     user_id = message['object']['user_id']
-    current_question = await find_current_question(group_id)
+    finish_time, current_question = await find_current_question(group_id)
 
-    if current_question is None:
+    if finish_time < time.time()*1000:
+        await set_next_question(group_id, current_question)
         return json_response(data={'error': 'The answer is too late'})
     else:
         points = current_question['points']
-        if answer_is_correct(answer, current_question):
+        correct_answer = await answer_is_correct(answer, current_question['id'])
+        if correct_answer:
             await change_player_points(group_id, user_id, points)
             await set_next_question(group_id, current_question)
-            return json_response(data={'message': 'Верно. Участник '+user_id+' получает '+points+' очков.'})
+            return json_response(data={'message': 'Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.'})
         else:
             await change_player_points(group_id, user_id, -points)
-            return json_response(data={'message': 'Неверно. Участник '+user_id+' теряет '+points+' очков.'})
+            return json_response(data={'message': 'Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.'})
 
 
 async def get_current_question(request):
     message = await request.json()
     group_id = message['group_id']
-    current_question = await find_current_question(group_id)
-    if current_question is None:
+    question = await func_get_current_question(group_id)
+    if question is None:
 
-        return json_response(data={'error': 'Please set new theme'})
+        return json_response(data={'error': 'Please start new game'})
     else:
-        return json_response(data=current_question)
+        return json_response(data=question)
