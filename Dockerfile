@@ -7,4 +7,4 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 #как я понимаю это твоя команда для запуска сервера
-CMD [ "python3", "main.py"]
+CMD [ "python", "main.py"]
