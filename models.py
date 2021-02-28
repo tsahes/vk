@@ -37,7 +37,7 @@ class gameSchema(Schema):
     game_finished = fields.Boolean(default=False)
 
 
-def data_verification(data, type):
+def data_verification(data: dict, type: str) -> dict:
     if type == 'game':
         schema = gameSchema()
     elif type == 'question':

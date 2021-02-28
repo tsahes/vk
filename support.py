@@ -1,7 +1,10 @@
 from pymongo import DESCENDING
+import motor.motor_asyncio
+
+mongo_collection = motor.motor_asyncio.AsyncIOMotorCollection
 
 
-async def insert_document(collection, data):
+async def insert_document(collection: mongo_collection, data: dict) -> str:
     """ Function to insert a document into a collection and
     return the document's id.
     """
@@ -9,7 +12,7 @@ async def insert_document(collection, data):
     return result.inserted_id
 
 
-async def find_document(collection, elements={}, multiple=False):
+async def find_document(collection: mongo_collection, elements: dict={}, multiple: bool=False):
     """ Function to retrieve single or multiple documents from a provided
     Collection using a dictionary containing a document's elements.
     """
@@ -20,7 +23,7 @@ async def find_document(collection, elements={}, multiple=False):
         return await collection.find_one(elements)
 
 
-async def get_questions(collection, limit=100, offset=0, theme=None):
+async def get_questions(collection: mongo_collection, limit: int=100, offset: int=0, theme: str=None) -> list:
     if theme:
         results = collection.find({"$and": [{"text": {'$exists': True}},
                                             {"theme": theme}]},
@@ -50,8 +53,8 @@ async def get_question_order(collection, question):
         return 1
 
 
-async def get_game_order(collection, game):
-    group_games = await collection.count_documents({'group_id' : game['group_id']})
+async def get_game_order(collection, group_id):
+    group_games = await collection.count_documents({'group_id' : group_id})
     return group_games + 1
 
 

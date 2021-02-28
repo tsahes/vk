@@ -1,5 +1,6 @@
 from connection_to_database import questions_table, games_table
-from support import get_question_order, insert_document, get_themes, get_played_themes, gen_question_id
+from support import get_question_order, insert_document, get_themes, get_played_themes, gen_question_id, get_game_order, \
+    gen_game_id
 import time
 
 seconds_to_answer_question = 30 * 60
@@ -87,8 +88,16 @@ async def func_get_current_question(group_id):
         return current_question
     else:
         return None
+
+
 # TODO: functionality for presenting game results (current or last played)
-#async def get_game_results(group_id):
-
-
+async def latest_game(group_id):
+    game = await games_table.find_one({'group_id': group_id, 'game_finished': False})
+    if game is not None:
+        return [game, 'current']
+    else:
+        number_of_games = await get_game_order(games_table, group_id)
+        game_id = await gen_game_id(group_id, number_of_games-1)
+        game = await games_table.find_one({'game_id': game_id})
+        return [game, 'finished']
 

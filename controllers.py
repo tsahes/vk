@@ -45,14 +45,14 @@ async def questions_delete(request):
 
 async def game_start(request):
     game_data = await request.json()
-    game_id = gen_game_id(game_data['group_id'], await get_game_order(games_table, game_data))
+    group_id = game_data['group_id']
+    game_id = gen_game_id(group_id, await get_game_order(games_table, group_id))
     new_game = dict(group_id=game_data['group_id'],
                     game_id=game_id,
                     players={},
                     game_finished=False,
                     )
     correct_game = data_verification(new_game, type='game')
-
     await insert_document(games_table, correct_game['data'].copy())
     themes = await get_themes(questions_table)
     return json_response(data=themes)
@@ -111,3 +111,9 @@ async def get_current_question(request):
         return json_response(data={'error': 'Please start new game'})
     else:
         return json_response(data=question)
+
+
+async def get_game_results(request):
+    message = await request.json()
+    group_id = message['group_id']
+
