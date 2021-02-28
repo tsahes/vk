@@ -1,7 +1,7 @@
 from pymongo import MongoClient, DESCENDING
 import motor.motor_asyncio
 #from motor import MotorClient
-from creds import MONGODB_URL
+#from creds import MONGODB_URL
 import os
 
 url_attempt = os.environ.get('MONGODB_URL')
