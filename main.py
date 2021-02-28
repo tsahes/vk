@@ -1,5 +1,6 @@
 from aiohttp import web
 from routes import setup_routes
+import os
 
 
 #APP
@@ -11,4 +12,4 @@ def setup_app(application: web.Application) -> None:
 
 if __name__ == '__main__':
     setup_app(app)
-    web.run_app(app)
+    web.run_app(app, port=int(os.environ.get("PORT", 5000)))
