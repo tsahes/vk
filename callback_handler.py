@@ -26,7 +26,7 @@ async def processing(request):
     elif data['type'] == 'message_new':
         session = vk.Session()
         api = vk.API(session, v='5.50')
-        user_id = data['object']['from_id']
+        user_id = data['object']['id']
         message = data['object']['body']
         print(message)
         api.messages.send(access_token=token, user_id=str(user_id), message=message, random_id=random.getrandbits(64))
