@@ -18,6 +18,7 @@ async def processing(request):
     #Распаковываем json из пришедшего POST-запроса
     data = await request.json()
     print(data['type'])
+    print(data)
     #Вконтакте в своих запросах всегда отправляет поле типа
     if 'type' not in data.keys():
         return web.Response(text='not vk')
