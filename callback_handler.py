@@ -31,6 +31,6 @@ async def processing(request):
         message = data['object']['body']
         print(message)
         group_id = data['group_id']
-        api.messages.send(access_token=token, user_id=str(user_id), chat_id=group_id, message=message, random_id=random.getrandbits(64))
+        api.messages.send(access_token=token, user_id=str(user_id), peer_id=group_id, message=message, random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
         return web.Response(text='ok')
