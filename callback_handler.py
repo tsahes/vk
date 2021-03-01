@@ -1,19 +1,27 @@
 import vk
 import random
 import os
+from json_responses import json_response, error_json_response
+from aiohttp import web
+
 
 
 confirmation_token = '416094e2'
 token = os.environ.get('vk_api_token')
 
-def processing(request):
+#def first_confirmation(request):
+#    data = request.json()
+
+
+
+async def processing(request):
     #Распаковываем json из пришедшего POST-запроса
-    data = request.json()
+    data = await request.json()
     #Вконтакте в своих запросах всегда отправляет поле типа
     if 'type' not in data.keys():
         return 'not vk'
     if data['type'] == 'confirmation' and data['group_id'] == 202927298:
-        return confirmation_token
+        return web.Response(text=confirmation_token)
     elif data['type'] == 'message_new':
         session = vk.Session()
         api = vk.API(session, v='5.50')
