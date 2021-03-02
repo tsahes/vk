@@ -39,7 +39,7 @@ async def processing(request):
 
         api.messages.send(access_token=token,
                           peer_id=str(peer_id), group_id=group_id,
-                          message=str(data),
+                          message=text,
                           random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
         return web.Response(text='ok')
