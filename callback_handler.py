@@ -33,7 +33,7 @@ async def processing(request):
             user_id = data['object']['from_id']
         else:
             user_id = ''
-#        message = data['object']['body']
+        message = data['object']['text']
 #        print(message)
         group_id = data['group_id']
         peer_id = data['object']['peer_id']
@@ -43,6 +43,7 @@ async def processing(request):
             chat_id = ''
         api.messages.send(access_token=token, user_id=str(user_id),
                           peer_id=peer_id, group_id=group_id,
-                          chat_id=chat_id, message=str(conversations), random_id=random.getrandbits(64))
+                          chat_id=chat_id, message=str(message),
+                          random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
         return web.Response(text='ok')
