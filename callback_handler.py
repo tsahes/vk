@@ -26,7 +26,7 @@ async def processing(request):
         return web.Response(text=confirmation_token)
     elif data['type'] == 'message_new':
         session = vk.Session()
-        api = vk.API(session, v='5.80')
+        api = vk.API(session, v='5.130')
         conversations = api.messages.getConversations(access_token=token,)
         print(data['object'].keys())
         if 'from_id' in data['object']:
