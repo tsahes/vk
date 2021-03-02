@@ -25,6 +25,7 @@ async def processing(request):
     if data['type'] == 'confirmation' and data['group_id'] == 202927298:
         return web.Response(text=confirmation_token)
     elif data['type'] == 'message_new':
+        conversations = api.messages.getConversations()
         session = vk.Session()
         api = vk.API(session, v='5.80')
         print(data['object'].keys())
@@ -40,6 +41,6 @@ async def processing(request):
             chat_id = data['object']['chat_id']
         else:
             chat_id = ''
-        api.messages.send(access_token=token, user_id=str(user_id), peer_id=peer_id, group_id=group_id, chat_id=chat_id, message=str(data), random_id=random.getrandbits(64))
+        api.messages.send(access_token=token, user_id=str(user_id), peer_id=peer_id, group_id=group_id, chat_id=chat_id, message=str(conversations), random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
         return web.Response(text='ok')
