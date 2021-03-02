@@ -26,7 +26,7 @@ async def processing(request):
         return web.Response(text=confirmation_token)
     elif data['type'] == 'message_new':
         session = vk.Session()
-        api = vk.API(session, v='5.50')
+        api = vk.API(session, v='5.80')
         print(data['object'].keys())
         user_id = data['object']['user_id']
         message = data['object']['body']
