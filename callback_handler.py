@@ -28,7 +28,7 @@ async def processing(request):
         session = vk.Session()
         api = vk.API(session, v='5.80')
         print(data['object'].keys())
-        user_id = data['object']['user_id']
+        user_id = data['object']['from_id']
         message = data['object']['body']
         print(message)
         group_id = data['group_id']
