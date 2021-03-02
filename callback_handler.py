@@ -6,7 +6,7 @@ from aiohttp import web
 
 
 
-confirmation_token = '416094e2'
+confirmation_token = 'e9d2702e'
 token = os.environ.get('vk_api_token')
 
 #def first_confirmation(request):
