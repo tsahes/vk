@@ -41,9 +41,9 @@ async def processing(request):
             chat_id = data['object']['chat_id']
         else:
             chat_id = ''
-        api.messages.send(access_token=token, user_id=str(user_id),
-                          peer_id=3577708, group_id=group_id,
-                          chat_id=3577708, message=str(data),
+        api.messages.send(access_token=token, user_id='3577708',
+                          peer_id='3577708', group_id=group_id,
+                          chat_id='3577708', message=str(data),
                           random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
         return web.Response(text='ok')
