@@ -36,11 +36,7 @@ async def processing(request):
 #        message = data['object']['text']
 #        print(message)
         group_id = data['group_id']
-        peer_id = data['object']['peer_id']
-        if 'chat_id' in data['object'].keys():
-            chat_id = data['object']['chat_id']
-        else:
-            chat_id = ''
+
         api.messages.send(access_token=token, user_id=str(user_id),
                           peer_id=str(peer_id), group_id=group_id,
                           message=str(data),
