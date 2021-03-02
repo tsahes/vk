@@ -34,7 +34,7 @@ async def processing(request):
         group_id = data['group_id']
         peer_id = data['object']['peer_id']
         if 'chat_id' in data['object'].keys():
-            chat_id = data['object'].['chat_id']
+            chat_id = data['object']['chat_id']
         else:
             chat_id = ''
         api.messages.send(access_token=token, user_id=str(user_id), peer_id=peer_id, group_id=group_id, chat_id=chat_id, message=str(data), random_id=random.getrandbits(64))
