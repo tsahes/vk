@@ -33,7 +33,7 @@ async def processing(request):
             user_id = data['object']['from_id']
         else:
             user_id = ''
-        message = data['object']['text']
+#        message = data['object']['text']
 #        print(message)
         group_id = data['group_id']
         peer_id = data['object']['peer_id']
