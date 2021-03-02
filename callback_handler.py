@@ -29,8 +29,8 @@ async def processing(request):
         api = vk.API(session, v='5.80')
         print(data['object'].keys())
         user_id = data['object']['from_id']
-        message = data['object']['body']
-        print(message)
+#        message = data['object']['body']
+#        print(message)
         group_id = data['group_id']
         api.messages.send(access_token=token, user_id=str(user_id), group_id=group_id, message=str(data), random_id=random.getrandbits(64))
         # Сообщение о том, что обработка прошла успешно
