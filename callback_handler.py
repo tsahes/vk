@@ -37,7 +37,7 @@ async def processing(request):
 #        print(message)
         group_id = data['group_id']
 
-        api.messages.send(access_token=token, user_id=str(user_id),
+        api.messages.send(access_token=token,
                           peer_id=str(peer_id), group_id=group_id,
                           message=str(data),
                           random_id=random.getrandbits(64))
