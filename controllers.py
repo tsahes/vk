@@ -101,7 +101,7 @@ async def set_theme(theme, group_id):
         question_id = await check_and_set_theme(group_id, theme)
         question = await get_question(question_id['id'])
         message = question['text']
-        api.messages.send(message=question, peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
     except KeyError as err:
         api.messages.send(message='Не удалось найти выбранную тему. Попробуйте ещё раз.',
                           peer_id=group_id, random_id=random.getrandbits(64))
@@ -179,7 +179,7 @@ async def send_current_question(group_id):
                           peer_id=str(group_id), random_id=random.getrandbits(64))
     else:
         message = question['text']
-        api.messages.send(message=question, peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
