@@ -30,7 +30,7 @@ async def check_and_set_theme(group_id, theme):
 
 async def get_question(question_id):
     question = await questions_table.find_one({'id': question_id}, {'_id': False})
-    return question['text']
+    return question
 
 
 async def find_current_question(group_id):
