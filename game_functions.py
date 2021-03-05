@@ -1,9 +1,11 @@
+from pprint import pformat
 from connection_to_database import questions_table, games_table
 from support import get_question_order, insert_document, get_themes, get_played_themes, gen_question_id, get_game_order, \
     gen_game_id
 import time
 
 seconds_to_answer_question = 30 * 60
+
 
 async def form_correct_question(question_data):
     question_data.setdefault('order', await get_question_order(questions_table, question_data))
@@ -73,7 +75,6 @@ async def set_next_question(group_id, current_question,):
                                               {'$set': {'game_finished': True,
                                                         'current_question': None,
                                                         'time_finish': None}})
-        # TODO: need to send game results to the chat
 
 
 async def func_get_current_question(group_id):
@@ -90,7 +91,6 @@ async def func_get_current_question(group_id):
         return None
 
 
-# TODO: functionality for presenting game results (current or last played)
 async def latest_game(group_id):
     game = await games_table.find_one({'group_id': group_id, 'game_finished': False})
     if game is not None:
@@ -101,3 +101,13 @@ async def latest_game(group_id):
         game = await games_table.find_one({'game_id': game_id})
         return [game, 'finished']
 
+
+def present_game_results(game):
+    players = game[0]['players']
+    players = {user: points for user, points in sorted(players.items(), key=lambda item: item[1], reverse=True)}
+    players_str = pformat(players)
+    if game[1] == 'current':
+        message = 'Промежуточные итоги текущей игры: \n' + players_str
+    elif game[1] == 'finished':
+        message = 'Результаты последней завершённой игры: \n' + players_str
+    return message

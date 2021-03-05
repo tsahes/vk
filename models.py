@@ -32,7 +32,7 @@ class gameSchema(Schema):
 #    players = fields.List(fields.Nested(gamerSchema()))
     players = fields.Dict()
     current_question = fields.Str()
-    current_theme = fields.Str()
+    current_theme = fields.Str(default=None)
     time_finish = fields.DateTime()
     game_finished = fields.Boolean(default=False)
 
