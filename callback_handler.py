@@ -3,13 +3,14 @@ import random
 import os
 from aiohttp import web
 
+from connection_to_vk import api, confirmation_token
 from controllers import game_start, get_game_results, set_theme, check_answer
 from game_functions import latest_game
 
-confirmation_token = 'e9d2702e'
+'''confirmation_token = 'e9d2702e'
 token = os.environ.get('vk_api_token')
 session = vk.Session(access_token=token)
-api = vk.API(session, v='5.130')
+api = vk.API(session, v='5.130')'''
 
 
 async def processing(request):

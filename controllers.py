@@ -9,7 +9,7 @@ from game_functions import (form_correct_question, get_question,
                             answer_is_correct, change_player_points,
                             set_next_question, func_get_current_question,
                             latest_game, present_game_results)
-from callback_handler import api
+from connection_to_vk import api
 
 
 # ADMIN API FUNCTIONALITY
