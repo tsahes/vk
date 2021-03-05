@@ -178,6 +178,7 @@ async def send_current_question(group_id):
         api.messages.send(message='Игра закончена. Вы можете посомтреть результаты или начать новую игру.',
                           peer_id=str(group_id), random_id=random.getrandbits(64))
     else:
+        message = question['text']
         api.messages.send(message=question, peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
