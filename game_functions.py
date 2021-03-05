@@ -21,9 +21,9 @@ async def form_correct_question(question_data):
 async def check_and_set_theme(group_id, theme):
     all_themes = await get_themes(questions_table)
     played_themes = await get_played_themes(games_table, group_id)
-    little_message = str(all_themes) + ', ' + str(played_themes)
-    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
-                      message=little_message)
+#    little_message = str(all_themes) + ', ' + str(played_themes)
+#    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
+#                      message=little_message)
     if (theme in all_themes) and (theme not in played_themes):
         question_id = gen_question_id(theme)
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},

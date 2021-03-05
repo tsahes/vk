@@ -62,6 +62,8 @@ async def game_start(group_id):
     themes = await get_themes(questions_table)
     played_themes = await get_played_themes(games_table, group_id)
     themes = [theme for theme in themes if theme not in played_themes]
+    themes_message = str(themes) + ', '  + str(played_themes)
+    api.messages.send(message=themes_message, peer_id=group_id, random_id=random.getrandbits(64))
 
     message = 'Выберите тему из списка: ' + ', '.join(themes)
     api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
