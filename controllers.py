@@ -63,7 +63,7 @@ async def game_start(group_id):
     themes = [theme for theme in themes if theme not in played_themes]
 
     message = 'Выберите тему из списка: ' + ', '.join(themes)
-    api.sendMessage(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+    api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
@@ -99,10 +99,10 @@ async def set_theme(theme, group_id):
     try:
         question_id = await check_and_set_theme(group_id, theme)
         question = await get_question(question_id['id'])
-        api.sendMessage(message=question, peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message=question, peer_id=group_id, random_id=random.getrandbits(64))
     except KeyError as err:
-        api.sendMessage(message='Не удалось найти выбранную тему. Попробуйте ещё раз.',
-                        peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message='Не удалось найти выбранную тему. Попробуйте ещё раз.',
+                          peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
@@ -125,8 +125,8 @@ async def check_answer(answer, group_id, user_id):
 
     if finish_time < time.time()*1000:
         await set_next_question(group_id, current_question)
-        api.sendMessage(message='Ответ пришел слишком поздно, следующий вопрос:',
-                        peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message='Ответ пришел слишком поздно, следующий вопрос:',
+                          peer_id=group_id, random_id=random.getrandbits(64))
         await send_current_question(group_id)
 
     else:
@@ -136,14 +136,14 @@ async def check_answer(answer, group_id, user_id):
         if correct_answer:
             await change_player_points(group_id, user_id, points)
             await set_next_question(group_id, current_question)
-            api.sendMessage(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
-                            peer_id=group_id, random_id=random.getrandbits(64))
+            api.messages.send(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
+                              peer_id=group_id, random_id=random.getrandbits(64))
             await send_current_question(group_id)
 
         else:
             await change_player_points(group_id, user_id, -points)
-            api.sendMessage(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
-                            peer_id=group_id, random_id=random.getrandbits(64))
+            api.messages.send(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
+                              peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 '''
@@ -173,10 +173,10 @@ async def check_answer(request):
 async def send_current_question(group_id):
     question = await func_get_current_question(group_id)
     if question is None:
-        api.sendMessage(message='Игра закончена. Вы можете посомтреть результаты или начать новую игру.',
-                        peer_id=str(group_id), random_id=random.getrandbits(64))
+        api.messages.send(message='Игра закончена. Вы можете посомтреть результаты или начать новую игру.',
+                          peer_id=str(group_id), random_id=random.getrandbits(64))
     else:
-        api.sendMessage(message=question, peer_id=group_id, random_id=random.getrandbits(64))
+        api.messages.send(message=question, peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
@@ -196,7 +196,7 @@ async def get_current_question(request):
 async def get_game_results(group_id):
     game = await latest_game(group_id)
     message = present_game_results(game)
-    api.sendMessage(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+    api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
