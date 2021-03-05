@@ -32,7 +32,7 @@ async def processing(request):
         info_str = pformat(info)
         api.messages.send(peer_id=str(peer_id), group_id=group_id, message=info_str,
                           random_id=random.getrandbits(64))
-        result = await get_stage(peer_id, user_id, text)
+        result = await get_stage(int(peer_id), int(user_id), text)
 #        api.messages.send(peer_id=str(peer_id), group_id=group_id,
 #                          message=text,
 #                          random_id=random.getrandbits(64))
