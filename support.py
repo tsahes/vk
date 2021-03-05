@@ -67,10 +67,8 @@ async def get_played_themes(collection, group_id):
                               'game_finished': True},
                              {'current_theme': True})
     themes_result = [r['current_theme'] async for r in result]
-    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
-                      message=str(themes_result))
     return themes_result
-#    return themes_result
+
 
 # Not needed yet
 async def find_game(collection, id):
