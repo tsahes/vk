@@ -15,8 +15,8 @@ async def form_correct_question(question_data):
 
 
 async def check_and_set_theme(group_id, theme):
-    if (theme in await get_themes(questions_table)) and \
-            (theme not in await get_played_themes(games_table, group_id)):
+    if ((theme in await get_themes(questions_table)) and
+            (theme not in await get_played_themes(games_table, group_id))):
         question_id = gen_question_id(theme)
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
                                               {'$set': {'current_theme': theme,

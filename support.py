@@ -1,6 +1,10 @@
 from pymongo import DESCENDING
 import motor.motor_asyncio
 
+#for debugging purposes
+from connection_to_vk import api
+import random
+
 mongo_collection = motor.motor_asyncio.AsyncIOMotorCollection
 
 
@@ -58,10 +62,12 @@ async def get_game_order(collection, group_id):
     return group_games + 1
 
 
-async def get_played_themes(collection, id):
-    result = collection.find({'group_id': id,
+async def get_played_themes(collection, group_id):
+    result = collection.find({'group_id': group_id,
                               'game_finished': True},
                              {'theme': True})
+    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
+                      message=str([r async for r in result]))
     return [r async for r in result]
 
 
