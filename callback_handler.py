@@ -1,6 +1,6 @@
-
+from pprint import pformat
 from aiohttp import web
-
+import random
 from connection_to_vk import api, confirmation_token
 from controllers import game_start, get_game_results, set_theme, check_answer
 from game_functions import latest_game
@@ -28,6 +28,10 @@ async def processing(request):
         user_id = message['from_id']
 
         group_id = data['group_id']
+        info = {'text': text, 'user_id': user_id, 'group(peer)_id': peer_id}
+        info_str = pformat(info)
+        api.messages.send(peer_id=str(peer_id), group_id=group_id, message=info_str,
+                          random_id=random.getrandbits(64))
         result = await get_stage(peer_id, user_id, text)
 #        api.messages.send(peer_id=str(peer_id), group_id=group_id,
 #                          message=text,
