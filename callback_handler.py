@@ -48,7 +48,7 @@ async def get_stage(group_id, user_id, text):
         elif text.lower().find('результат') > -1:
             return await get_game_results(group_id)
     elif game[1] == 'current':
-        if game['current_theme'] is None:
+        if game[0]['current_theme'] is None:
             return await set_theme(text, group_id)
         else:
             return await check_answer(text, group_id, user_id)
