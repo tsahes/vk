@@ -50,7 +50,7 @@ async def questions_delete(request):
 # GAME FUNCTIONALITY
 async def game_start(group_id):
     game_id = gen_game_id(group_id, await get_game_order(games_table, group_id))
-    new_game = dict(group_id=game_id,
+    new_game = dict(group_id=group_id,
                     game_id=game_id,
                     players={},
                     game_finished=False,
