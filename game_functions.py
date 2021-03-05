@@ -97,7 +97,7 @@ async def latest_game(group_id):
         return [game, 'current']
     else:
         number_of_games = await get_game_order(games_table, group_id)
-        game_id = await gen_game_id(group_id, number_of_games-1)
+        game_id = gen_game_id(group_id, number_of_games-1)
         game = await games_table.find_one({'game_id': game_id})
         return [game, 'finished']
 

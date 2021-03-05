@@ -1,6 +1,4 @@
-import vk
-import random
-import os
+
 from aiohttp import web
 
 from connection_to_vk import api, confirmation_token
