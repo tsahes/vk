@@ -54,6 +54,7 @@ async def game_start(group_id):
                     game_id=game_id,
                     players={},
                     game_finished=False,
+                    current_theme=None
                     )
     correct_game = data_verification(new_game, type='game')
     await insert_document(games_table, correct_game['data'].copy())
