@@ -4,6 +4,10 @@ from support import get_question_order, insert_document, get_themes, get_played_
     gen_game_id
 import time
 
+#for debugging purposes
+from connection_to_vk import api
+import random
+
 seconds_to_answer_question = 30 * 60
 
 
@@ -15,8 +19,12 @@ async def form_correct_question(question_data):
 
 
 async def check_and_set_theme(group_id, theme):
-    if ((theme in await get_themes(questions_table)) and
-            (theme not in await get_played_themes(games_table, group_id))):
+    all_themes = await get_themes(questions_table)
+    played_themes = await get_played_themes(games_table, group_id)
+    little_message = str(all_themes) + ', ' + str(played_themes)
+    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
+                      message=little_message)
+    if (theme in all_themes) and (theme not in played_themes):
         question_id = gen_question_id(theme)
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
                                               {'$set': {'current_theme': theme,
