@@ -63,13 +63,13 @@ async def get_game_order(collection, group_id):
 
 
 async def get_played_themes(collection, group_id):
-    result = collection.find({'group_id': group_id,
-                              'game_finished': True}).distinct('theme')
+    result = await collection.find({'group_id': group_id,
+                                    'game_finished': True}).distinct('theme')
 #                             {'theme': True})
     api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
-                      message=str(result))
+                      message=str([r async for r in result]))
 #    return [r async for r in result]
-    return result
+    return [r async for r in result]
 
 # Not needed yet
 async def find_game(collection, id):
