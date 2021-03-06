@@ -1,12 +1,8 @@
-from pprint import pformat
 from connection_to_database import questions_table, games_table
 from support import get_question_order, insert_document, get_themes, get_played_themes, gen_question_id, get_game_order, \
     gen_game_id
 import time
 
-#for debugging purposes
-from connection_to_vk import api
-import random
 
 seconds_to_answer_question = 30 * 60
 
@@ -21,9 +17,7 @@ async def form_correct_question(question_data):
 async def check_and_set_theme(group_id, theme):
     all_themes = await get_themes(questions_table)
     played_themes = await get_played_themes(games_table, group_id)
-#    little_message = str(all_themes) + ', ' + str(played_themes)
-#    api.messages.send(peer_id=group_id, random_id=random.getrandbits(64),
-#                      message=little_message)
+
     if (theme in all_themes) and (theme not in played_themes):
         question_id = gen_question_id(theme)
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
@@ -33,7 +27,6 @@ async def check_and_set_theme(group_id, theme):
         return {'id': question_id}
     else:
         raise KeyError('Theme not found')
-#        return {'error': 'Theme not found'}
 
 
 async def get_question(question_id):
@@ -113,8 +106,8 @@ async def latest_game(group_id):
 def present_game_results(game):
     players = game[0]['players']
     player_ids = list(sorted(players.keys(), key=lambda item: item[1], reverse=True))
-    players_str = f'победитель — {player_ids[0]} — {players[player_ids[0]]} очков, \n'
-    players_str += ', \n'.join([f'{id} — {players[id]}' for id in player_ids[1:]])
+    players_str = f'победитель — {player_ids[0]} — {players[player_ids[0]]} очков\n'
+    players_str += '\n'.join([f'{id} — {players[id]}' for id in player_ids[1:]])
 #    players_str = pformat(players)
     if game[1] == 'current':
         message = 'Промежуточные итоги текущей игры: \n' + players_str
