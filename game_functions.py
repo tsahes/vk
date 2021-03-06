@@ -112,7 +112,7 @@ async def latest_game(group_id):
 
 def present_game_results(game):
     players = game[0]['players']
-    player_ids = list(sorted(players.items(), key=lambda item: item[1], reverse=True).keys())
+    player_ids = list(sorted(players.keys(), key=lambda item: item[1], reverse=True))
     players_str = f'победитель — {player_ids[0]} — {players[player_ids[0]]} очков, \n'
     players_str += ', \n'.join([f'{id} — {players[id]}' for id in player_ids[1:]])
 #    players_str = pformat(players)
