@@ -139,13 +139,13 @@ async def send_current_question(group_id):
         message = question['text']
         api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
         # TODO: add sleep and checker or whether it's necessary to sent another question
-        time.sleep(seconds_to_answer_question)
-        new_question = await func_get_current_question(group_id)
-        if question['id'] == new_question['id']:
-            api.messages.send(message='Время вышло, следующий вопрос:',
-                              peer_id=str(group_id), random_id=random.getrandbits(64))
-            await set_next_question(group_id, question)
-            send_current_question(group_id)
+#        time.sleep(seconds_to_answer_question)
+#        new_question = await func_get_current_question(group_id)
+#        if question['id'] == new_question['id']:
+#            api.messages.send(message='Время вышло, следующий вопрос:',
+#                              peer_id=str(group_id), random_id=random.getrandbits(64))
+#            await set_next_question(group_id, question)
+#            send_current_question(group_id)
     return 1
 
 
