@@ -119,8 +119,11 @@ async def latest_game(group_id):
 def present_game_results(game):
     players = game[0]['players']
     player_ids = list(sorted(players.keys(), key=lambda item: item[1], reverse=True))
-    players_str = f'победитель — {player_ids[0]} — {players[player_ids[0]]} очков\n'
-    players_str += '\n'.join([f'{id} — {players[id]}' for id in player_ids[1:]])
+    if len(player_ids) > 0:
+        players_str = f'победитель — {player_ids[0]} — {players[player_ids[0]]} очков\n'
+        players_str += '\n'.join([f'{id} — {players[id]}' for id in player_ids[1:]])
+    else:
+        players_str = 'никто ещё не заработал очков.'
 #    players_str = pformat(players)
     if game[1] == 'current':
         message = 'Промежуточные итоги текущей игры: \n' + players_str
