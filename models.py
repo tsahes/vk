@@ -10,7 +10,7 @@ def answer_validation(text):
 class answerSchema(Schema):
     class Meta:
         unknown = INCLUDE
-    text = fields.Str(required=True, validate=answer_validation(),
+    text = fields.Str(required=True, validate=answer_validation,
                       error_messages={'required': 'Answer to the question is required',
                                       'validator_failed': 'Answer cannot start with the "/" symbol'})
     id = fields.Integer(default=0)
