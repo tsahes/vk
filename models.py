@@ -32,7 +32,7 @@ class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
     players = fields.Dict()
-    players_answered = fields.List()
+    players_answered = fields.List(fields.Str())
     current_question = fields.Str()
     current_theme = fields.Str(allow_none=True)
     time_finish = fields.DateTime()
