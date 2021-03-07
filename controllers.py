@@ -83,9 +83,11 @@ async def game_start(group_id):
 async def set_theme(theme, group_id):
     try:
         question_id = await check_and_set_theme(group_id, theme)
-        question = await get_question(question_id['id'])
-        message = question['text']
-        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+        send_current_question(group_id)
+#        question = await get_question(question_id['id'])
+#        message = question['text']
+#        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+        # TODO: add sleep and checker for whether it's necessary to send another question
     except KeyError as err:
         api.messages.send(message='Не удалось найти выбранную тему. Попробуйте ещё раз.',
                           peer_id=group_id, random_id=random.getrandbits(64))
@@ -94,6 +96,7 @@ async def set_theme(theme, group_id):
 
 async def check_answer(answer, group_id, user_id):
     finish_time, current_question = await find_current_question(group_id)
+    # TODO: remove check for late answer
     player_answered = await check_player_already_answered(group_id, user_id)
 
     if player_answered:
@@ -101,27 +104,28 @@ async def check_answer(answer, group_id, user_id):
                           peer_id=group_id, random_id=random.getrandbits(64))
 
     else:
-        if finish_time < time.time()*1000:
+#        if finish_time < time.time()*1000:
+#            await set_next_question(group_id, current_question)
+#            api.messages.send(message='Ответ пришел слишком поздно, следующий вопрос:',
+#                              peer_id=group_id, random_id=random.getrandbits(64))
+#            await send_current_question(group_id)
+
+#        else:
+        points = current_question['points']
+        correct_answer = await answer_is_correct(answer, current_question['id'])
+
+        if correct_answer:
+            await change_player_points(group_id, user_id, points)
             await set_next_question(group_id, current_question)
-            api.messages.send(message='Ответ пришел слишком поздно, следующий вопрос:',
+            api.messages.send(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
                               peer_id=group_id, random_id=random.getrandbits(64))
             await send_current_question(group_id)
+            # TODO: add sleep and checker for whether it's necessary to send another question(maybe into send_current_question)
 
         else:
-            points = current_question['points']
-            correct_answer = await answer_is_correct(answer, current_question['id'])
-
-            if correct_answer:
-                await change_player_points(group_id, user_id, points)
-                await set_next_question(group_id, current_question)
-                api.messages.send(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
-                                  peer_id=group_id, random_id=random.getrandbits(64))
-                await send_current_question(group_id)
-
-            else:
-                await change_player_points(group_id, user_id, -points)
-                api.messages.send(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
-                                  peer_id=group_id, random_id=random.getrandbits(64))
+            await change_player_points(group_id, user_id, -points)
+            api.messages.send(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
+                              peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
@@ -133,6 +137,7 @@ async def send_current_question(group_id):
     else:
         message = question['text']
         api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+        # TODO: add sleep and checker or whether it's necessary to sent another question
     return 1
 
 
