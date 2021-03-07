@@ -47,6 +47,17 @@ async def find_current_question(group_id):
         return [None, None]
 
 
+async def check_player_already_answered(group_id, player):
+    game = await games_table.find_one({'group_id': group_id, 'game_finished': False})
+    if player in game['players_answered']:
+        return True
+    else:
+        game['players_answered'].append(player)
+        await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
+                                              {'$set': {'players_answered': game['players_answered']}})
+        return False
+
+
 async def answer_is_correct(answer: str, question_id):
     question = await questions_table.find_one({'id': question_id})
     return answer.upper() == question['answers']['text'].upper()
@@ -70,12 +81,14 @@ async def set_next_question(group_id, current_question,):
         question_id = gen_question_id(current_question['theme'], current_question['order']+1)
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
                                               {'$set': {'current_question': question_id,
-                                                        'time_finish': None}})
+                                                        'time_finish': None,
+                                                        'players_answered': []}})
     else:
         await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
                                               {'$set': {'game_finished': True,
                                                         'current_question': None,
-                                                        'time_finish': None}})
+                                                        'time_finish': None,
+                                                        'players_answered': []}})
 
 
 async def func_get_current_question(group_id):

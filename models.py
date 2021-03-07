@@ -21,16 +21,16 @@ class questionSchema(Schema):
 #    order = fields.Integer(default=0)
 
 
-class gamerSchema(Schema):
+'''class gamerSchema(Schema):
     user_id = fields.Integer()
-    user_score = fields.Integer()
+    user_score = fields.Integer()'''
 
 
 class gameSchema(Schema):
     group_id = fields.Integer()
     game_id = fields.Str()
-#    players = fields.List(fields.Nested(gamerSchema()))
     players = fields.Dict()
+    players_answered = fields.List()
     current_question = fields.Str()
     current_theme = fields.Str(allow_none=True)
     time_finish = fields.DateTime()

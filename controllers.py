@@ -8,7 +8,7 @@ from game_functions import (form_correct_question, get_question,
                             check_and_set_theme, find_current_question,
                             answer_is_correct, change_player_points,
                             set_next_question, func_get_current_question,
-                            latest_game, present_game_results)
+                            latest_game, present_game_results, check_player_already_answered)
 from connection_to_vk import api
 
 
@@ -54,7 +54,8 @@ async def game_start(group_id):
                     game_id=game_id,
                     players={},
                     game_finished=False,
-                    current_theme=None
+                    current_theme=None,
+                    players_answered=[]
                     )
     correct_game = data_verification(new_game, type='game')
     await insert_document(games_table, correct_game['data'].copy())
@@ -82,28 +83,34 @@ async def set_theme(theme, group_id):
 
 async def check_answer(answer, group_id, user_id):
     finish_time, current_question = await find_current_question(group_id)
+    player_answered = await check_player_already_answered(group_id, user_id)
 
-    if finish_time < time.time()*1000:
-        await set_next_question(group_id, current_question)
-        api.messages.send(message='Ответ пришел слишком поздно, следующий вопрос:',
+    if player_answered:
+        api.messages.send(message='Вы уже отвечали на этот вопрос.',
                           peer_id=group_id, random_id=random.getrandbits(64))
-        await send_current_question(group_id)
 
     else:
-        points = current_question['points']
-        correct_answer = await answer_is_correct(answer, current_question['id'])
-
-        if correct_answer:
-            await change_player_points(group_id, user_id, points)
+        if finish_time < time.time()*1000:
             await set_next_question(group_id, current_question)
-            api.messages.send(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
+            api.messages.send(message='Ответ пришел слишком поздно, следующий вопрос:',
                               peer_id=group_id, random_id=random.getrandbits(64))
             await send_current_question(group_id)
 
         else:
-            await change_player_points(group_id, user_id, -points)
-            api.messages.send(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
-                              peer_id=group_id, random_id=random.getrandbits(64))
+            points = current_question['points']
+            correct_answer = await answer_is_correct(answer, current_question['id'])
+
+            if correct_answer:
+                await change_player_points(group_id, user_id, points)
+                await set_next_question(group_id, current_question)
+                api.messages.send(message='Верно. Участник '+str(user_id)+' получает '+str(points)+' очков.',
+                                  peer_id=group_id, random_id=random.getrandbits(64))
+                await send_current_question(group_id)
+
+            else:
+                await change_player_points(group_id, user_id, -points)
+                api.messages.send(message='Неверно. Участник '+str(user_id)+' теряет '+str(points)+' очков.',
+                                  peer_id=group_id, random_id=random.getrandbits(64))
     return 1
 
 
