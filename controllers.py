@@ -83,7 +83,7 @@ async def game_start(group_id):
 async def set_theme(theme, group_id):
     try:
         question_id = await check_and_set_theme(group_id, theme)
-        send_current_question(group_id)
+        await send_current_question(group_id)
 #        question = await get_question(question_id['id'])
 #        message = question['text']
 #        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
