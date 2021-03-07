@@ -1,11 +1,18 @@
 from marshmallow import Schema, fields, ValidationError, INCLUDE
 
+def answer_validation(text):
+    if text[0] == '/':
+        return False
+    else:
+        return True
 
 #DATA VERIFICATION
 class answerSchema(Schema):
     class Meta:
         unknown = INCLUDE
-    text = fields.Str(required=True, error_messages={'required' : 'Answer to the question is required'})
+    text = fields.Str(required=True, validate=answer_validation(),
+                      error_messages={'required': 'Answer to the question is required',
+                                      'validator_failed': 'Answer cannot start with the "/" symbol'})
     id = fields.Integer(default=0)
     is_correct = fields.Boolean(default=True)
     order = fields.Integer(default=0)
@@ -19,11 +26,6 @@ class questionSchema(Schema):
     text = fields.Str(required=True, error_messages={'required' : 'Text of the question is required'})
     answers = fields.Nested(answerSchema())
 #    order = fields.Integer(default=0)
-
-
-'''class gamerSchema(Schema):
-    user_id = fields.Integer()
-    user_score = fields.Integer()'''
 
 
 class gameSchema(Schema):

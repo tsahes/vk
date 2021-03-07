@@ -3,7 +3,8 @@ import time
 from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
 from models import data_verification
-from support import insert_document, get_questions, get_game_order, get_themes, gen_game_id, get_played_themes
+from support import insert_document, get_questions, get_game_order, get_themes, gen_game_id, get_played_themes, \
+    get_games
 from game_functions import (form_correct_question, get_question,
                             check_and_set_theme, find_current_question,
                             answer_is_correct, change_player_points,
@@ -45,6 +46,16 @@ async def questions_delete(request):
     question = await request.json()
     await questions_table.delete_one({'id': question['id']})
     return json_response()
+
+
+async def games_list(request):
+    params = request.rel_url.query
+    limit = int(request.rel_url.query['limit']) if 'limit' in params else 100
+    offset = int(request.rel_url.query['offset']) if 'offset' in params else 0
+
+    data = await get_games(games_table, limit, offset)
+
+    return json_response(data={'total': len(data), 'games': data})
 
 
 # GAME FUNCTIONALITY
@@ -132,3 +143,12 @@ async def get_game_results(group_id):
     return 1
 
 
+async def stop_game(group_id):
+    await games_table.find_one_and_update({'group_id': group_id, 'game_finished': False},
+                                          {'$set': {'game_finished': True,
+                                                    'current_question': None,
+                                                    'time_finish': None,
+                                                    'players_answered': []}}
+                                          )
+    await get_game_results(group_id)
+    return 1

@@ -27,17 +27,23 @@ async def find_document(collection: mongo_collection, elements: dict={}, multipl
         return await collection.find_one(elements)
 
 
-async def get_questions(collection: mongo_collection, limit: int=100, offset: int=0, theme: str=None) -> list:
+async def get_questions(collection: mongo_collection, limit: int = 100, offset: int = 0, theme: str = None) -> list:
     if theme:
-        results = collection.find({"$and": [{"text": {'$exists': True}},
-                                            {"theme": theme}]},
-                                  {"_id" : False}
+        results = collection.find({"text": {'$exists': True}, "theme": theme},
+                                  {"_id": False}
                                   ).sort('order', DESCENDING
                                          ).limit(limit).skip(offset)
     else:
         results = collection.find({"text": {'$exists': True}}
                                   ).sort([('theme', DESCENDING), ('order', DESCENDING)]
                                          ).limit(limit).skip(offset)
+    res_list = [r async for r in results]
+    return res_list
+
+async def get_games(collection: mongo_collection, limit: int=100, offset: int=0) -> list:
+    results = collection.find({'game_id': {'$exists': True}}
+                              ).sort('game_id', DESCENDING
+                                     ).limit(limit).skip(offset)
     res_list = [r async for r in results]
     return res_list
 
@@ -58,7 +64,7 @@ async def get_question_order(collection, question):
 
 
 async def get_game_order(collection, group_id):
-    group_games = await collection.count_documents({'group_id' : group_id})
+    group_games = await collection.count_documents({'group_id': group_id})
     return group_games + 1
 
 
@@ -76,8 +82,10 @@ async def find_game(collection, id):
                                        {'game_finished': False}]})
     return [r async for r in result]
 
+
 def gen_question_id(theme, ind=1):
     return theme + str(ind)
+
 
 def gen_game_id(group_id, ind):
     game_id = str(group_id)+'-'+str(ind)

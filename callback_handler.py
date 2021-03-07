@@ -2,7 +2,7 @@ from pprint import pformat
 from aiohttp import web
 import random
 from connection_to_vk import api, confirmation_token
-from controllers import game_start, get_game_results, set_theme, check_answer
+from controllers import game_start, get_game_results, set_theme, check_answer, stop_game
 from game_functions import latest_game
 
 
@@ -31,11 +31,13 @@ async def processing(request):
 
 async def get_stage(group_id, user_id, text):
     game = await latest_game(group_id)
-    if game[1] == 'finished':
-        if text.lower().find('игр') > -1:
+    if text[0] == '/':
+        if text == '/старт':
             return await game_start(group_id)
-        elif text.lower().find('результат') > -1:
+        elif text == '/статистика':
             return await get_game_results(group_id)
+        elif text == '/стоп':
+            return await stop_game(group_id)
     elif game[1] == 'current':
         if game[0]['current_theme'] is None:
             return await set_theme(text, group_id)
