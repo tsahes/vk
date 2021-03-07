@@ -4,7 +4,7 @@ from support import get_question_order, insert_document, get_themes, get_played_
 import time
 
 
-seconds_to_answer_question = 1 * 60
+seconds_to_answer_question = 60 * 1
 
 
 async def form_correct_question(question_data):

@@ -9,7 +9,8 @@ from game_functions import (form_correct_question, get_question,
                             check_and_set_theme, find_current_question,
                             answer_is_correct, change_player_points,
                             set_next_question, func_get_current_question,
-                            latest_game, present_game_results, check_player_already_answered)
+                            latest_game, present_game_results, check_player_already_answered,
+                            seconds_to_answer_question)
 from connection_to_vk import api
 
 
@@ -87,7 +88,7 @@ async def set_theme(theme, group_id):
 #        question = await get_question(question_id['id'])
 #        message = question['text']
 #        api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
-        # TODO: add sleep and checker for whether it's necessary to send another question
+        # TODO: add sleep and checker for whether it's necessary to send another question (in send_current_question)
     except KeyError as err:
         api.messages.send(message='Не удалось найти выбранную тему. Попробуйте ещё раз.',
                           peer_id=group_id, random_id=random.getrandbits(64))
@@ -138,6 +139,13 @@ async def send_current_question(group_id):
         message = question['text']
         api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
         # TODO: add sleep and checker or whether it's necessary to sent another question
+        time.sleep(seconds_to_answer_question)
+        new_question = await func_get_current_question(group_id)
+        if question['id'] == new_question['id']:
+            api.messages.send(message='Время вышло, следующий вопрос:',
+                              peer_id=str(group_id), random_id=random.getrandbits(64))
+            await set_next_question(group_id, question)
+            send_current_question(group_id)
     return 1
 
 
