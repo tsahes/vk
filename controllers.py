@@ -135,14 +135,14 @@ async def send_current_question(group_id):
     else:
         message = question['text']
         api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
-        yield 1
-        time.sleep(seconds_to_answer_question)
-        new_question = await func_get_current_question(group_id)
-        if question['id'] == new_question['id']:
-            await set_next_question(group_id, question)
-            await send_current_question(group_id)
+#        yield 1
+#        time.sleep(seconds_to_answer_question)
+#        new_question = await func_get_current_question(group_id)
+#        if question['id'] == new_question['id']:
+#            await set_next_question(group_id, question)
+#            await send_current_question(group_id)
 
-    yield 1
+    return 1
 
 
 async def get_game_results(group_id):
