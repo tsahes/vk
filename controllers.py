@@ -10,6 +10,7 @@ from game_functions import (form_correct_question, get_question,
                             answer_is_correct, change_player_points,
                             set_next_question, func_get_current_question,
                             latest_game, present_game_results, check_player_already_answered,
+                            seconds_to_answer_question,
                             )
 from connection_to_vk import api
 
@@ -128,15 +129,20 @@ async def check_answer(answer, group_id, user_id):
 async def send_current_question(group_id):
     question = await func_get_current_question(group_id)
     if question is None:
-
         api.messages.send(message='Игра закончена.',
                           peer_id=str(group_id), random_id=random.getrandbits(64))
         await get_game_results(group_id)
     else:
         message = question['text']
         api.messages.send(message=message, peer_id=group_id, random_id=random.getrandbits(64))
+        yield 1
+        time.sleep(seconds_to_answer_question)
+        new_question = await func_get_current_question(group_id)
+        if question['id'] == new_question['id']:
+            await set_next_question(group_id, question)
+            await send_current_question(group_id)
 
-    return 1
+    yield 1
 
 
 async def get_game_results(group_id):
