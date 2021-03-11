@@ -6,7 +6,7 @@ import os
 #APP
 #app = web.Application()
 
-def setup_app(application: web.Application) -> web.Application:
+def setup_app() -> web.Application:
     app = web.Application()
     setup_routes(app)
     return app
