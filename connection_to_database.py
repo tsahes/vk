@@ -1,5 +1,6 @@
 import motor.motor_asyncio
 import os
+#from creds import MONGODB_URL
 
 MONGODB_URL = os.environ.get('MONGODB_URL')
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)

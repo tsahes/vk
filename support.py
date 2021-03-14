@@ -34,7 +34,8 @@ async def get_questions(collection: mongo_collection, limit: int = 100, offset: 
                                   ).sort('order', DESCENDING
                                          ).limit(limit).skip(offset)
     else:
-        results = collection.find({"text": {'$exists': True}}
+        results = collection.find({"text": {'$exists': True}},
+                                  {"_id": False}
                                   ).sort([('theme', DESCENDING), ('order', DESCENDING)]
                                          ).limit(limit).skip(offset)
     res_list = [r async for r in results]
