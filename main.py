@@ -4,12 +4,14 @@ import os
 
 
 #APP
-app = web.Application()
+#app = web.Application()
 
-def setup_app(application: web.Application) -> None:
-    setup_routes(application)
+def setup_app() -> web.Application:
+    app = web.Application()
+    setup_routes(app)
+    return app
 
 
 if __name__ == '__main__':
-    setup_app(app)
+    app = setup_app()
     web.run_app(app, port=int(os.environ.get("PORT", 5000)))
