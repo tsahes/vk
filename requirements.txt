@@ -16,3 +16,4 @@ vk==2.0.2
 yarl==1.6.3
 
 pytest~=6.2.2
+aiounittest~=1.4.0
