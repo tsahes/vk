@@ -8,7 +8,6 @@ from support import get_question_order, gen_question_id
 
 SUCCESS = 200
 INCORRECT_HEADER = 400
-ADDED = 201
 
 
 class TestQuestions(aiounittest.AsyncTestCase):
@@ -25,16 +24,18 @@ class TestQuestions(aiounittest.AsyncTestCase):
         # kwargs = {'name': random_name, 'position': position}
         test_question = {'points': 0, 'theme': 'test_theme', 'text': 'test_text',
                          'answers': {'text': 'test_answer', 'id': 0, 'is_correct': True, 'order': 0}}
-        order = await get_question_order(questions_table, test_question)
+
+        # order = await get_question_order(questions_table, test_question)
+        order = 1
         question_id = gen_question_id(test_question['theme'], order)
 
-        status_code, text = self._create_question(test_question)
+        status_code, text = self._create_question(**test_question)
 
         test_question['order'] = order
         test_question['id'] = question_id
 
-        self.assertEqual(status_code, ADDED)
-        self.assertEqual(text, test_question)
+        self.assertEqual(status_code, SUCCESS)
+        self.assertEqual(text['data'], test_question)
 
     # def test_data_retrieve(self):
     #     status_code, accounts = self._get_accounts()
@@ -62,8 +63,9 @@ class TestQuestions(aiounittest.AsyncTestCase):
     #     _, data = self._get_accounts()
     #     return map(lambda x: x.get(key), data.get('candidates'))
     #
-    def _create_question(self, data):
-        _response = requests.post(self.urls['create'], data=data)
+    def _create_question(self, points, theme, text, answers):
+        _payload = json.dumps({'points': points, 'theme': theme, 'text': text, 'answers': answers})
+        _response = requests.post(self.urls['create'], data=_payload)
         return _response.status_code, _response.json()
 
     # def _delete_account(self, identificator):
@@ -72,4 +74,4 @@ class TestQuestions(aiounittest.AsyncTestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    aiounittest.main(verbosity=2)
