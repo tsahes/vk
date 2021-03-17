@@ -21,22 +21,25 @@ class answerSchema(Schema):
 class questionSchema(Schema):
     class Meta:
         unknown = INCLUDE
-    points = fields.Integer(required=True, error_messages={'required' : 'Points are required'})
-    theme = fields.Str(required=True, error_messages={'required' : 'Theme is required'})
-    text = fields.Str(required=True, error_messages={'required' : 'Text of the question is required'})
-    answers = fields.Nested(answerSchema())
+    points = fields.Integer(required=True, error_messages={'required': 'Points are required'})
+    theme = fields.Str(required=True, error_messages={'required': 'Theme is required'})
+    text = fields.Str(required=True, error_messages={'required': 'Text of the question is required'})
+    answers = fields.Nested(answerSchema(), required=True, error_messages={'required': 'Answer is required'})
 #    order = fields.Integer(default=0)
 
 
 class gameSchema(Schema):
-    group_id = fields.Integer()
-    game_id = fields.Str()
-    players = fields.Dict()
-    players_answered = fields.List(fields.Str())
+    group_id = fields.Integer(required=True, error_messages={'required': 'Group/chat id is required'})
+    game_id = fields.Str(required=True, error_messages={'required': 'Game id is required'})
+    players = fields.Dict(required=True,
+                          error_messages={'required': 'Dictionary of players and their points is required'})
+    players_answered = fields.List(fields.Str(), required=True,
+                                   error_messages={'required': 'List of players is required'})
     current_question = fields.Str()
     current_theme = fields.Str(allow_none=True)
     time_finish = fields.DateTime()
-    game_finished = fields.Boolean(default=False)
+    game_finished = fields.Boolean(default=False, required=True,
+                                   error_messages={'required': 'Finished flag is required'})
 
 
 def data_verification(data: dict, type: str) -> dict:

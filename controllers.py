@@ -4,7 +4,7 @@ from connection_to_database import questions_table, games_table
 from json_responses import json_response, error_json_response
 from models import data_verification
 from support import insert_document, get_questions, get_game_order, get_themes, gen_game_id, get_played_themes, \
-    get_games
+    get_games, get_question_order
 from game_functions import (form_correct_question, get_question,
                             check_and_set_theme, find_current_question,
                             answer_is_correct, change_player_points,
@@ -58,6 +58,29 @@ async def games_list(request):
     data = await get_games(games_table, limit, offset)
 
     return json_response(data={'total': len(data), 'games': data})
+
+
+# FILLING UP THE DB WITH TEST DATA
+
+async def games_create(request):
+    game = await request.json()
+    order = await get_game_order(games_table, game)
+    game['id'] = gen_game_id(game['group_id'], order)
+    correct_game = data_verification(game, 'game')
+
+    if correct_game['success']:
+        correct_game = correct_game['data']
+        await insert_document(games_table, correct_game.copy())
+        return json_response(data=correct_game)
+    else:
+        return error_json_response(text_status='not ok', data=correct_game['data'])
+
+
+async def games_delete(request):
+    game = await request.json()
+    await games_table.delete_one({'id': game['id']})
+    return json_response()
+
 
 
 # GAME FUNCTIONALITY

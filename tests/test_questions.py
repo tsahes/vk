@@ -1,5 +1,4 @@
 import requests
-import unittest
 import aiounittest
 import json
 
