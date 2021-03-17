@@ -65,7 +65,7 @@ async def games_list(request):
 async def games_create(request):
     game = await request.json()
     order = await get_game_order(games_table, game)
-    game['id'] = gen_game_id(game['group_id'], order)
+    game['game_id'] = gen_game_id(game['group_id'], order)
     correct_game = data_verification(game, 'game')
 
     if correct_game['success']:

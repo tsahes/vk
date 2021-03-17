@@ -27,10 +27,11 @@ class TestGames(aiounittest.AsyncTestCase):
 
         order = self.game_counter
         game_id = gen_game_id(test_game['group_id'], order)
-        test_game['game_id'] = game_id
+
+        print(test_game)
 
         status_code, text = self._create_game(**test_game)
-
+        test_game['game_id'] = game_id
         self.assertEqual(status_code, SUCCESS)
         self.assertEqual(text['data'], test_game)
 
