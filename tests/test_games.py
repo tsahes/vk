@@ -49,11 +49,9 @@ class TestGames(aiounittest.AsyncTestCase):
         self.assertEqual(status_code, SUCCESS)
         self.assertEqual(questions.get('data').get('total'), 0)
 
-        await games_table.delete_one({'id': '1000-1'})
-
     def test_delete(self):
         identifier = '1000-1'
-        status_code, text = self._delete_question(identifier)
+        status_code, text = self._delete_game(identifier)
         self.assertEqual(status_code, SUCCESS)
         self.assertNotIn(identifier, self._get_list_of('game_id'))
 

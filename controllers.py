@@ -78,7 +78,7 @@ async def games_create(request):
 
 async def games_delete(request):
     game = await request.json()
-    await games_table.delete_one({'id': game['id']})
+    await games_table.delete_one({'game_id': game['game_id']})
     return json_response()
 
 
