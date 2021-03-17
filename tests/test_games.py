@@ -28,16 +28,12 @@ class TestGames(aiounittest.AsyncTestCase):
         order = self.game_counter
         game_id = gen_game_id(test_game['group_id'], order)
 
-        print(test_game)
-
         status_code, text = self._create_game(**test_game)
         test_game['game_id'] = game_id
         self.assertEqual(status_code, SUCCESS)
         self.assertEqual(text['data'], test_game)
 
     async def test_data_retrieve(self):
-        await game_start(1000)
-
         status_code, questions = self._get_games()
         self.assertEqual(status_code, SUCCESS)
         self.assertGreaterEqual(questions.get('data').get('total'), 1)
@@ -55,37 +51,35 @@ class TestGames(aiounittest.AsyncTestCase):
 
         await games_table.delete_one({'id': '1000-1'})
 
-
-    # def test_delete(self):
-    #     identifier = 'test_theme1'
-    #     status_code, text = self._delete_question(identifier)
-    #     self.assertEqual(status_code, SUCCESS)
-    #     self.assertNotIn(identifier, self._get_list_of('id'))а
+    def test_delete(self):
+        identifier = '1000-1'
+        status_code, text = self._delete_question(identifier)
+        self.assertEqual(status_code, SUCCESS)
+        self.assertNotIn(identifier, self._get_list_of('game_id'))
 
     def _get_games(self, limit=None, offset=None):
         _payload = {'limit': limit, 'offset': offset}
-        _response = requests.get(self.url, params=_payload)
+        _response = requests.get(self.urls['list'], params=_payload)
         return _response.status_code, _response.json()
 
-    # def _get_list_of(self, key):
-    #     _, total_response = self._get_questions()
-    #     data = total_response['data']
-    #     return map(lambda x: x.get(key), data.get('questions'))
+    def _get_list_of(self, key):
+        _, total_response = self._get_games()
+        data = total_response['data']
+        return map(lambda x: x.get(key), data.get('games'))
 
-    def _create_game(self, group_id, game_id, players, game_finished, current_theme, players_answered):
-        _payload = json.dumps({'group_id': group_id, 'game_id': game_id,
+    def _create_game(self, group_id, players, game_finished, current_theme, players_answered):
+        _payload = json.dumps({'group_id': group_id,
                                'players': players, 'game_finished': game_finished,
                                'current_theme': current_theme, 'players_answered': players_answered})
         _response = requests.post(self.urls['create'], data=_payload)
-        print(_response)
         self.game_counter += 1
         return _response.status_code, _response.json()
 
-    # def _delete_question(self, identifier):
-    #     _payload = json.dumps({'id': identifier})
-    #     _response = requests.post(self.urls['delete'], data=_payload)
-    #     print(_response)
-    #     return _response.status_code, _response.json()
+    def _delete_game(self, identifier):
+        _payload = json.dumps({'game_id': identifier})
+        _response = requests.post(self.urls['delete'], data=_payload)
+        print(_response)
+        return _response.status_code, _response.json()
 
 
 if __name__ == '__main__':

@@ -42,7 +42,8 @@ async def get_questions(collection: mongo_collection, limit: int = 100, offset: 
     return res_list
 
 async def get_games(collection: mongo_collection, limit: int=100, offset: int=0) -> list:
-    results = collection.find({'game_id': {'$exists': True}}
+    results = collection.find({'game_id': {'$exists': True}},
+                              {'_id': False}
                               ).sort('game_id', DESCENDING
                                      ).limit(limit).skip(offset)
     res_list = [r async for r in results]
