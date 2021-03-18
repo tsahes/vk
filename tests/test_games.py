@@ -2,11 +2,9 @@ import requests
 import aiounittest
 import json
 
-from connection_to_database import games_table
-from controllers import game_start
 from support import gen_game_id
 
-SUCCESS = 200
+SUCCESS = 200 
 
 
 class TestGames(aiounittest.AsyncTestCase):
@@ -22,8 +20,6 @@ class TestGames(aiounittest.AsyncTestCase):
         test_game = {'group_id': 1000,
                      'players': {}, 'game_finished': False,
                      'current_theme': 'test_theme', 'players_answered': []}
-                    # {'points': 0, 'theme': 'test_theme', 'text': 'test_text',
-                    #      'answers': {'text': 'test_answer', 'id': 0, 'is_correct': True, 'order': 0}}
 
         order = self.game_counter
         game_id = gen_game_id(test_game['group_id'], order)

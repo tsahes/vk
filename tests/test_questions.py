@@ -5,6 +5,7 @@ import json
 from support import gen_question_id
 
 SUCCESS = 200
+FAILURE = 400
 
 
 class TestQuestions(aiounittest.AsyncTestCase):
@@ -31,6 +32,42 @@ class TestQuestions(aiounittest.AsyncTestCase):
 
         self.assertEqual(status_code, SUCCESS)
         self.assertEqual(text['data'], test_question)
+
+    async def test_incorrect_creation(self):
+        test_question = {'points': 0, 'theme': 'test_theme', 'text': 'test_text',
+                         'answers': {'text': 'test_answer', 'id': 0, 'is_correct': True, 'order': 0}}
+
+        points = test_question.pop('points')
+        theme = test_question.pop('theme')
+        question_text = test_question.pop('text')
+        _payload = json.dumps(test_question)
+        _response = requests.post(self.urls['create'], data=_payload)
+        status_code, text = _response.status_code, _response.json()['data']
+
+        self.assertEqual(status_code, FAILURE)
+        self.assertEqual(text['points'][0], 'Points are required')
+        self.assertEqual(text['theme'][0], 'Theme is required')
+        self.assertEqual(text['text'][0], 'Text of the question is required')
+
+        test_question['points'] = points
+        test_question['theme'] = theme
+        test_question['text'] = question_text
+        answers = test_question.pop('answers')
+        _payload = json.dumps(test_question)
+        _response = requests.post(self.urls['create'], data=_payload)
+        status_code, text = _response.status_code, _response.json()['data']
+
+        self.assertEqual(status_code, FAILURE)
+        self.assertEqual(text['answers'][0], 'Answer is required')
+
+        answer_text = answers.pop('text')
+        test_question['answers'] = answers
+        _payload = json.dumps(test_question)
+        _response = requests.post(self.urls['create'], data=_payload)
+        status_code, text = _response.status_code, _response.json()['data']
+
+        self.assertEqual(status_code, FAILURE)
+        self.assertEqual(text['answers']['text'][0], 'Answer to the question is required')
 
     def test_data_retrieve(self):
         status_code, questions = self._get_questions()
@@ -70,7 +107,7 @@ class TestQuestions(aiounittest.AsyncTestCase):
         data = total_response['data']
         return map(lambda x: x.get(key), data.get('questions'))
 
-    def _create_question(self, points, theme, text, answers):
+    def _create_question(self, points=None, theme=None, text=None, answers=None):
         _payload = json.dumps({'points': points, 'theme': theme, 'text': text, 'answers': answers})
         _response = requests.post(self.urls['create'], data=_payload)
         self.question_counter += 1
@@ -79,7 +116,6 @@ class TestQuestions(aiounittest.AsyncTestCase):
     def _delete_question(self, identifier):
         _payload = json.dumps({'id': identifier})
         _response = requests.post(self.urls['delete'], data=_payload)
-        print(_response)
         return _response.status_code, _response.json()
 
 
