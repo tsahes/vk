@@ -5,3 +5,4 @@ The bot works in multi-people chats in the social network vk.com
 
 # Technologies
 - Python 3.8
+- MongoDB
